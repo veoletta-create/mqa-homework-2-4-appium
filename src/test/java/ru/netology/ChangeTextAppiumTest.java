@@ -5,36 +5,30 @@ import io.appium.java_client.android.options.UiAutomator2Options;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import ru.netology.screens.MainScreen;
+import ru.netology.screens.SecondScreen;
 
 import java.net.URL;
-import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ChangeTextAppiumTest {
 
     private AndroidDriver driver;
-    private WebDriverWait wait;
 
     private static final String APP_PACKAGE = "ru.netology.testing.uiautomator";
-    private static final String APK_PATH = "/Users/veoletta/Desktop/mqa-homeworks/2.2 UI Automator/sample/app/build/outputs/apk/debug/app-debug.apk";
+    private static final String APP_ACTIVITY = "ru.netology.testing.uiautomator.MainActivity";
 
     @BeforeEach
     public void setUp() throws Exception {
         UiAutomator2Options options = new UiAutomator2Options()
                 .setPlatformName("Android")
                 .setDeviceName("Pixel 6")
-                .setApp(APK_PATH)
                 .setAppPackage(APP_PACKAGE)
-                .setAppActivity(APP_PACKAGE + ".MainActivity")
+                .setAppActivity(APP_ACTIVITY)
                 .setAutomationName("UiAutomator2");
 
         driver = new AndroidDriver(new URL("http://127.0.0.1:4723"), options);
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
     @AfterEach
@@ -46,24 +40,14 @@ public class ChangeTextAppiumTest {
 
     @Test
     public void testEmptyStringInput() {
-        WebElement textToBeChanged = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(
-                        By.id(APP_PACKAGE + ":id/textToBeChanged")));
-        String initialText = textToBeChanged.getText();
+        MainScreen mainScreen = new MainScreen(driver);
 
-        WebElement userInput = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(
-                        By.id(APP_PACKAGE + ":id/userInput")));
-        userInput.clear();
-        userInput.sendKeys("   ");
+        String initialText = mainScreen.getCurrentText();
 
-        WebElement buttonChange = driver.findElement(By.id(APP_PACKAGE + ":id/buttonChange"));
-        buttonChange.click();
+        mainScreen.enterText("   ");
+        mainScreen.clickChangeButton();
 
-        WebElement textAfter = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(
-                        By.id(APP_PACKAGE + ":id/textToBeChanged")));
-        String result = textAfter.getText();
+        String result = mainScreen.getCurrentText();
 
         assertEquals(initialText, result,
                 "Текст не должен меняться при вводе пустой строки");
@@ -71,22 +55,16 @@ public class ChangeTextAppiumTest {
 
     @Test
     public void testOpenTextInNewActivity() {
+        MainScreen mainScreen = new MainScreen(driver);
+
         String textToPass = "NetologySecond";
 
-        WebElement userInput = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(
-                        By.id(APP_PACKAGE + ":id/userInput")));
-        userInput.clear();
-        userInput.sendKeys(textToPass);
+        mainScreen.enterText(textToPass);
+        mainScreen.clickOpenActivityButton();
 
-        WebElement buttonActivity = driver.findElement(By.id(APP_PACKAGE + ":id/buttonActivity"));
-        buttonActivity.click();
+        SecondScreen secondScreen = new SecondScreen(driver);
 
-        WebElement newActivityText = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(
-                        By.id(APP_PACKAGE + ":id/text")));
-
-        assertEquals(textToPass, newActivityText.getText(),
+        assertEquals(textToPass, secondScreen.getDisplayedText(),
                 "Текст во второй Activity должен совпадать с введённым");
     }
 }
